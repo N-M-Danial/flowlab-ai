@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlowLab Console v0.1.0</title>
+<title>FlowLab AI Console</title>
+<link rel="icon" type="image/x-icon" href="/static/flowlab_console_icon.ico">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
@@ -22,15 +23,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
 /* ── TOPBAR ── */
 #topbar{
-  height:36px;background:var(--surface);border-bottom:1px solid var(--border);
+  height:75px;background:var(--surface);border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 12px;gap:0;flex-shrink:0;
   font-family:var(--mono);
 }
-#topbar .logo{font-size:0.786rem;font-weight:600;color:var(--accent);letter-spacing:0.08em;margin-right:16px;white-space:nowrap}
+#topbar .logo{font-size:1.4rem;font-weight:600;color:var(--accent);letter-spacing:0.08em;margin-right:16px;white-space:nowrap}
 #topbar .logo span{color:var(--text3);font-weight:400}
 .topbar-sep{width:1px;height:18px;background:var(--border2);margin:0 10px}
 .topbar-kpi{display:flex;align-items:baseline;gap:4px;margin-right:14px;white-space:nowrap}
-.topbar-kpi .k{font-size:0.643rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em}
+.topbar-kpi .k{font-size:0.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em}
 .topbar-kpi .v{font-size:0.857rem;font-weight:600;color:var(--text)}
 .topbar-kpi .v.accent{color:var(--accent)}
 .topbar-kpi .v.warn{color:var(--orange)}
@@ -215,7 +216,14 @@ input[type=date]{width:130px}
 
 <!-- ── TOPBAR ── -->
 <div id="topbar">
-  <div class="logo">FLOWLAB CONSOLE<span></span> <span style="color:var(--border2)">·</span> <span>v0.1.0</span></div>
+  <div class="logo">
+        <img src="/static/flowlab_console_logo.png" 
+         style="height:50px;margin-right:8px;vertical-align:middle;">
+         <span></span> <span style="color:var(--border2)"></span>
+
+  </div>
+
+
   <div class="topbar-sep"></div>
   <div class="topbar-kpi"><span class="k">Roads</span><span class="v accent" id="stat-roads">14</span></div>
   <div class="topbar-kpi"><span class="k">V/C MAE</span><span class="v" id="stat-vc-mae">—</span></div>
