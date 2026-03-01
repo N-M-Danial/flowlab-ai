@@ -43,11 +43,11 @@ DEFAULT_PARAMS = {
 # Bayesian search space: (low, high, type)
 # type: "int", "float", "log" (log-uniform float), "choice"
 BAYES_SPACE = {
-    "estimator__learning_rate":    (0.01, 0.15,  "log"),
-    "estimator__max_depth":        (3,    8,      "int"),
-    "estimator__min_samples_leaf": (5,    60,     "int"),
-    "estimator__l2_regularization":(0.0,  2.0,    "float"),
-    "estimator__max_iter":         (200,  800,    "int"),
+    "estimator__learning_rate":    (0.005, 0.2,  "log"), # Allow slower, more precise learning
+    "estimator__max_depth":        (8,    20,     "int"), # INCREASED: Allows deeper trees for complex peaks
+    "estimator__min_samples_leaf": (5,    40,     "int"), # Slightly smaller leaves for finer detail
+    "estimator__l2_regularization":(1e-3, 0.5,    "log"), # DECREASED: High regularization causes under-prediction
+    "estimator__max_iter":         (400,  1200,   "int"), # INCREASED: More boosting rounds to correct residuals
 }
 
 
@@ -64,6 +64,8 @@ def _build_model(params=None):
             early_stopping    = True,
             n_iter_no_change  = 20,
             validation_fraction = 0.1,
+            interaction_cst = None, # You can define specific feature pairs here later
+            categorical_features = [True if f in ['hour', 'day_of_week', 'road_idx'] else False for f in ALL_FEATS],
         ),
         n_jobs=1,
     )
@@ -217,9 +219,15 @@ def _cv_score(params, train_df, n_splits=5):
         caps_va  = caps[va_idx]
         pred_vc  = np.where(caps_va > 0, pred_pcu / caps_va, 0)
         true_vc  = np.where(caps_va > 0, true_pcu / caps_va, 0)
-        vc_mae   = mean_absolute_error(true_vc, pred_vc)
+        diff = true_vc - pred_vc
+        # Penalty multiplier: 2.5x penalty if Actual > Predicted (under-prediction)
+        weighted_diff = np.where(diff > 0, diff * 2.5, np.abs(diff))
+        vc_mae = np.mean(weighted_diff)
         los_acc  = np.mean(los_array(pred_vc) == t_los[va_idx])
-        scores.append(0.7 * vc_mae - 0.3 * los_acc)
+
+
+        # Increase LOS weight to 50% to prioritize the Grade (LOS F vs B)
+        scores.append(0.5 * vc_mae - 0.5 * los_acc)
 
     return float(np.mean(scores))
 
@@ -231,7 +239,7 @@ def tune_model(train_df, n_iter=20, n_splits=5, verbose=True):
     Replaces random search. Same interface as before.
     Returns best params dict.
     """
-    optimiser = BayesianOptimiser(BAYES_SPACE, n_initial=max(3, n_iter // 4))
+    optimiser = BayesianOptimiser(BAYES_SPACE, n_initial=15) # Force more exploration
 
     if verbose:
         print(f"  Bayesian tuning: {n_iter} trials × {n_splits}-fold time-series CV")
